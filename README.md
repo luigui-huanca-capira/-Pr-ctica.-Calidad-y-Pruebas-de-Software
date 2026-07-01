@@ -1,67 +1,89 @@
-# Plataforma Web de Monitoreo de Accidentes SUTRAN (2020-2021)
+# Práctica: Calidad y Pruebas de Software
 
-Prototipo orientado al curso de **Calidad de Software** para analizar accidentes de tránsito en carreteras del Perú con datos abiertos de SUTRAN.
+## Actividad desarrollada
 
-## Características implementadas
+Este repositorio contiene únicamente los códigos utilizados para evaluar la calidad del proyecto **SUTRAN VIAL**, una plataforma web de monitoreo y visualización de accidentes de tránsito en carreteras del Perú durante el periodo 2020-2021.
 
-- API backend con FastAPI (arquitectura por capas)
-- Carga y limpieza de datos CSV con pandas
-- Filtros por año, departamento y modalidad
-- KPIs:
-  - total de accidentes
-  - total de fallecidos
-  - total de heridos
-- Visualizaciones:
-  - tendencia mensual (línea)
-  - accidentes por departamento (barras)
-  - accidentes por modalidad (barras)
-  - heatmap temporal día/hora (visualización no común)
-- Tabla de registros filtrados
+La práctica corresponde a la **Actividad 6: Verificación y Mantenimiento de Software** del curso Calidad de Software, semestre 2026-I.
 
-## Estructura
+## Objetivo
 
-- `backend/app/main.py` - inicio de API
-- `backend/app/api/routes.py` - endpoints
-- `backend/app/services/data_service.py` - lógica de datos
-- `backend/app/models/filters.py` - validación de filtros
-- `backend/app/core/*` - configuración y logging
-- `frontend/*` - dashboard web
+Instalar y utilizar Selenium para implementar pruebas automatizadas sobre el proyecto del semestre. La evaluación incluye pruebas unitarias, pruebas de integración de la API y pruebas funcionales de extremo a extremo.
 
-## Requisitos
+## Herramientas utilizadas
 
-- Python 3.10+
-- Archivo CSV en: `backend/data/accidentes_2020_2021.csv`
+- Python 3.14.
+- Selenium WebDriver 4.45.0.
+- `unittest`, incluido en Python.
+- Google Chrome.
+- Apache JMeter 5.6.3 para el plan complementario `Thread Group.jmx`.
 
-## Ejecución local
+## Archivos incluidos
 
-### 1) Backend
-
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+```text
+.
+├── README.md
+├── requirements-test.txt
+├── Thread Group.jmx
+└── tests
+    ├── __init__.py
+    ├── run_activity6.py
+    ├── test_api.py
+    ├── test_data_service.py
+    └── test_selenium.py
 ```
 
-API: `http://127.0.0.1:8000`
-Swagger: `http://127.0.0.1:8000/docs`
+### Códigos de prueba
 
-### 2) Frontend
+- `test_data_service.py`: seis pruebas unitarias de carga, filtros, departamentos y KPI.
+- `test_api.py`: cinco pruebas de integración sobre los endpoints REST.
+- `test_selenium.py`: seis pruebas funcionales de navegación, filtros, mapa, tabla y exportación.
+- `run_activity6.py`: ejecuta toda la batería y genera el resumen de resultados.
 
-Abrir `frontend/index.html` en navegador (o usar Live Server de VSCode).
+En total se implementaron **17 casos de prueba**.
 
-## Endpoints principales
+### Plan Thread Group
 
-- `GET /api/health`
-- `GET /api/filters/options`
-- `GET /api/dashboard/summary?anio=&departamento=&modalidad=`
-- `GET /api/accidentes?anio=&departamento=&modalidad=&limite=300`
+`Thread Group.jmx` es un plan de Apache JMeter configurado con:
 
-## Enfoque de calidad aplicado
+- 100 usuarios concurrentes.
+- Ramp-up de 60 segundos.
+- Duración de 300 segundos.
+- Solicitud HTTP GET de prueba.
+- Aggregate Report y View Results Tree.
 
-- Validación de entradas con Pydantic
-- Manejo básico de errores
-- Logging centralizado
-- Separación de responsabilidades (API / servicios / modelos / config)
-- Tareas trazables en `TODO.md`
+## Instalación
+
+Activar el entorno virtual e instalar Selenium:
+
+```powershell
+python -m pip install -r requirements-test.txt
+```
+
+## Ejecución
+
+El proyecto SUTRAN VIAL debe encontrarse activo en:
+
+```text
+Backend:  http://127.0.0.1:8000
+Frontend: http://127.0.0.1:5500
+```
+
+Ejecutar todas las pruebas desde la raíz del proyecto:
+
+```powershell
+python tests\run_activity6.py
+```
+
+## Resultado registrado
+
+La ejecución final obtuvo:
+
+```text
+17 pruebas ejecutadas
+17 pruebas aprobadas
+0 pruebas fallidas
+100 % de éxito
+```
+
+Los informes y capturas de pantalla se presentan como entregables separados y no forman parte de este repositorio de código.
