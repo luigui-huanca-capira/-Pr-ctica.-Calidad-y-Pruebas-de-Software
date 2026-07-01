@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+.cache/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node / frontend tooling if added later
+node_modules/
+dist/
+build/
+
+# Local environment
+.env
+.env.*
+
+# Generated reports and non-final deliverables
+entregables/*.docx
+!entregables/Articulo_IEEE_SUTRAN_VIAL_FINAL.docx
+
+# Keep official CSV data used by the prototype
+!backend/data/accidentes_2020_2021.csv

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>SUTRAN VIAL · Monitoreo de Accidentes en Carreteras del Perú</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy:    #0A1628;
+    --navy2:   #0F2040;
+    --red:     #C0392B;
+    --amber:   #E67E22;
+    --gold:    #F1C40F;
+    --teal:    #1ABC9C;
+    --smoke:   #F4F6F9;
+    --muted:   #8A9BB0;
+    --white:   #FFFFFF;
+    --border:  #1E3358;
+    --card-bg: #0D1E35;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 64px;
+    background: rgba(10,22,40,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 0.75rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.35rem; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .nav-brand .badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.82rem; font-weight: 500; letter-spacing: 0.03em;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--red); color: #fff;
+    border: none; border-radius: 6px;
+    padding: 8px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; transition: background .2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .nav-cta:hover { background: #a93226; }
+
+  .hero {
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 7rem 4rem 4rem;
+    gap: 3rem;
+    background:
+      radial-gradient(ellipse 70% 60% at 75% 50%, rgba(192,57,43,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 10% 80%, rgba(26,188,156,0.05) 0%, transparent 60%),
+      var(--navy);
+  }
+  .hero-text {}
+  .eyebrow {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em;
+    color: var(--red);
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-bottom: 1.2rem;
+  }
+  .eyebrow::before { content: ''; display: inline-block; width: 28px; height: 2px; background: var(--red); }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(2.8rem, 5vw, 4.4rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.4rem;
+  }
+  h1 .accent { color: var(--red); }
+  h1 .year   { color: var(--muted); font-weight: 300; }
+
+  .hero-desc {
+    font-size: 0.95rem; line-height: 1.7;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 2rem;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--red); color: #fff;
+    border: none; border-radius: 8px;
+    padding: 13px 28px;
+    font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; gap: 8px;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: #a93226; transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent; color: var(--white);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 13px 28px;
+    font-weight: 500; font-size: 0.9rem;
+    cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; gap: 8px;
+    text-decoration: none;
+  }
+  .btn-outline:hover { border-color: var(--muted); }
+
+  .hero-stats {
+    display: flex; gap: 2rem;
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem; font-weight: 700;
+    line-height: 1;
+  }
+  .stat-num .unit { font-size: 1.1rem; color: var(--muted); }
+  .stat-lbl { font-size: 0.72rem; color: var(--muted); margin-top: 4px; letter-spacing: 0.05em; }
+
+  .hero-visual {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .map-container {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+  }
+  .map-bg {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    padding-top: 2.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .map-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.2rem;
+  }
+  .map-title { font-size: 0.75rem; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .live-dot { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--teal); font-weight: 600; }
+  .live-dot::before {
+    content: ''; display: inline-block;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--teal);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+  }
+
+  #mapPeru {
+    width: 100%;
+    height: 320px;
+    margin-top: 6px;
+    border-radius: 14px;
+  }
+
+  .map-legend {
+    display: flex; gap: 1.2rem; margin-top: 1rem; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .floating-total {
+    position: absolute;
+    top: 4.9rem;
+    right: 2rem;
+    z-index: 500;
+    background: rgba(13,30,53,0.96);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    min-width: 205px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.22);
+  }
+  .floating-total-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 5px;
+    white-space: nowrap;
+  }
+  .floating-total-value {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .floating-total-period {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  section { padding: 5rem 4rem; }
+  .section-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.2em;
+    color: var(--red); text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-weight: 700; line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .section-sub { color: var(--muted); font-size: 0.9rem; line-height: 1.65; max-width: 600px; }
+
+  .dashboard-section { background: var(--navy2); }
+  .section-head { text-align:center; margin-bottom:3.5rem; }
+  .section-head p { color: rgba(255,255,255,0.45); font-size:0.75rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:1rem; }
+  .section-head span { color: var(--muted); display:block; margin-top:0.6rem; max-width:720px; margin-left:auto; margin-right:auto; }
+
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap: 1rem; margin-top: 24px; }
+  .dashboard-grid { max-width:1200px; margin:0 auto; }
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    position: relative; overflow: hidden;
+  }
+  .kpi-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--red);
+  }
+  .kpi-card.amber::after { background: var(--amber); }
+  .kpi-card.teal::after  { background: var(--teal); }
+  .kpi-card.gold::after  { background: var(--gold); }
+  .kpi-icon { font-size: 1.3rem; margin-bottom: 0.7rem; }
+  .kpi-val { font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .kpi-lbl { font-size: 0.7rem; color: var(--muted); font-weight: 500; }
+  .kpi-delta { font-size: 0.68rem; color: var(--red); margin-top: 6px; font-weight: 600; }
+  .kpi-delta.up { color: var(--teal); }
+  .kpi-code {
+    width: 42px;
+    height: 30px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.06);
+    color: var(--white);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+  .insight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .insight-panel,
+  .feature-card,
+  .flow-step,
+  .tech-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem;
+  }
+  .insight-panel span,
+  .feature-card span,
+  .flow-step span,
+  .tech-card span {
+    display: block;
+    color: var(--red);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+  }
+  .insight-panel strong {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.55rem;
+    line-height: 1.05;
+  }
+  .insight-panel p,
+  .feature-card p,
+  .flow-step p,
+  .tech-card p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+  .feature-grid,
+  .flow-grid,
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .flow-grid { grid-template-columns: repeat(5, 1fr); }
+  .tech-grid { grid-template-columns: repeat(3, 1fr); }
+  .feature-card h3,
+  .flow-step h3,
+  .tech-card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.25rem;
+    margin-bottom: 0.4rem;
+  }
+  footer p {
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  footer {
+    background: #06101e;
+    border-top: 1px solid var(--border);
+    padding: 3rem 4rem;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 2rem;
+  }
+  .footer-links { display: flex; flex-direction: column; gap: 0.4rem; }
+  .footer-links a { font-size: 0.78rem; color: var(--muted); text-decoration: none; }
+  .footer-links a:hover { color: var(--white); }
+
+  footer h5 { font-size:0.65rem; font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:0.8rem; }
+
+  @media (max-width: 980px) {
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 6rem 1.2rem 2.5rem; }
+    section { padding: 3.5rem 1.2rem; }
+    .kpi-row,
+    .insight-grid,
+    .feature-grid,
+    .flow-grid,
+    .tech-grid {
+      grid-template-columns: 1fr;
+    }
+    footer { flex-direction: column; padding: 2rem 1.2rem; }
+  }
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+<nav>
+  <div class="nav-brand">
+    🛣️ SUTRAN<span style="color:var(--muted);font-weight:300"> VIAL</span>
+    <span class="badge" style="background:var(--red); color:#fff; font-size:0.6rem; font-weight:800; letter-spacing:0.12em; padding:2px 7px; border-radius:3px;">BETA</span>
+  </div>
+  <div class="nav-links">
+    <a href="#dashboard">Indicadores</a>
+    <a href="#funciones">Funciones</a>
+    <a href="#flujo">Flujo de Datos</a>
+    <a href="#tecnologia">Tecnología</a>
+  </div>
+  <a class="nav-cta" href="prototipo_vialseg.html">Explorar Plataforma →</a>
+</nav>
+
+<section class="hero" id="inicio">
+  <div class="hero-text">
+    <div class="eyebrow">Plataforma de Seguridad Vial · Perú</div>
+    <h1>
+      Datos que<br>
+      <span class="accent">salvan vidas</span><br>
+      en carreteras<br>
+      <span class="year">2020–2021</span>
+    </h1>
+    <p class="hero-desc">
+      Plataforma web interactiva para monitorear y visualizar accidentes de tránsito
+      en carreteras del Perú, basada en datos abiertos de SUTRAN.
+      Análisis por departamento, carretera, kilómetro y modalidad de accidente.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#dashboard">Ver indicadores</a>
+      <a class="btn-outline" target="_blank" href="https://www.datosabiertos.gob.pe/dataset/accidentes-de-tr%C3%A1nsito-en-carreteras/resource/3398beff-8440-4343-a54d-0911d11dfcd5#{}">Datos SUTRAN</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num"><span id="statDep">—</span><span class="unit">dep.</span></div>
+        <div class="stat-lbl">Departamentos cubiertos</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">2<span class="unit">años</span></div>
+        <div class="stat-lbl">Período analizado</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">8<span class="unit">+</span></div>
+        <div class="stat-lbl">Variables de análisis</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="map-container">
+      <div class="map-bg">
+        <div class="map-header">
+          <span class="map-title">Mapa de Incidencia · Perú</span>
+          <span class="live-dot">EN VIVO</span>
+        </div>
+
+        <div id="mapPeru"></div>
+
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Alta incidencia</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Media incidencia</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Baja incidencia</div>
+        </div>
+
+        <div class="floating-total">
+          <div class="floating-total-label">Accidentes registrados</div>
+          <div class="floating-total-value"><span id="heroAccidentes">—</span></div>
+          <div class="floating-total-period">Periodo 2020–2021</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="dashboard-section" id="dashboard">
+  <div class="section-head">
+    <p>Indicadores oficiales</p>
+    <h2 class="section-title">Resumen SUTRAN 2020-2021</h2>
+    <span>Valores calculados directamente desde el CSV publicado en datosabiertos.gob.pe para accidentes en carreteras del Perú.</span>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-code">FAL</div>
+        <div class="kpi-val" id="kpiFallecidos">—</div>
+        <div class="kpi-lbl">Total Fallecidos</div>
+        <div class="kpi-delta">campo FALLECIDOS</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon kpi-code">HER</div>
+        <div class="kpi-val" id="kpiHeridos">—</div>
+        <div class="kpi-lbl">Total Heridos</div>
+        <div class="kpi-delta">campo HERIDOS</div>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon kpi-code">ACC</div>
+        <div class="kpi-val" id="kpiAccidentes">—</div>
+        <div class="kpi-lbl">Total Accidentes</div>
+        <div class="kpi-delta up">Periodo completo</div>
+      </div>
+      <div class="kpi-card gold">
+        <div class="kpi-icon kpi-code">DEP</div>
+        <div class="kpi-val" id="kpiDepartamentos">—</div>
+        <div class="kpi-lbl">Departamentos afectados</div>
+        <div class="kpi-delta">con registro SUTRAN</div>
+      </div>
+    </div>
+
+    <div class="insight-grid">
+      <div class="insight-panel">
+        <span>Mayor incidencia</span>
+        <strong id="topDepartamento">—</strong>
+        <p>Departamento con más accidentes registrados en el periodo filtrado.</p>
+      </div>
+      <div class="insight-panel">
+        <span>Modalidad principal</span>
+        <strong id="topModalidad">—</strong>
+        <p>Tipo de accidente más frecuente en el dataset oficial.</p>
+      </div>
+      <div class="insight-panel">
+        <span>Fuente</span>
+        <strong>SUTRAN · MTC</strong>
+        <p>Dataset abierto de accidentes de tránsito en carreteras, 2020-2021.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features-section" id="funciones">
+  <div class="section-label">Capacidades del Sistema</div>
+  <h2 class="section-title">Todo lo que necesitas para analizar la seguridad vial</h2>
+  <div class="section-sub">Herramientas integradas de consulta, filtrado y visualización diseñadas para transformar datos abiertos en información accionable.</div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span>Consulta</span>
+      <h3>Filtros reales</h3>
+      <p>Filtra por año, departamento y modalidad usando las opciones cargadas desde el backend.</p>
+    </div>
+    <div class="feature-card">
+      <span>Visualización</span>
+      <h3>Mapa del Perú</h3>
+      <p>Colorea cada departamento según baja, media o alta incidencia de accidentes.</p>
+    </div>
+    <div class="feature-card">
+      <span>Análisis</span>
+      <h3>Gráficos y heatmap</h3>
+      <p>Muestra tendencia mensual, modalidades, ranking departamental y concentración por día y hora.</p>
+    </div>
+    <div class="feature-card">
+      <span>Evidencia</span>
+      <h3>Tabla exportable</h3>
+      <p>Presenta registros filtrados con fecha, vía, kilómetro, fallecidos y heridos.</p>
+    </div>
+  </div>
+</section>
+
+<section class="flow-section" id="flujo">
+  <div class="section-label">Arquitectura del Sistema</div>
+  <h2 class="section-title">Cómo funciona la plataforma</h2>
+  <div class="section-sub">Desde datos abiertos de SUTRAN hasta visualizaciones interactivas.</div>
+  <div class="flow-grid">
+    <div class="flow-step">
+      <span>01</span>
+      <h3>Datos abiertos</h3>
+      <p>Se toma el CSV oficial de SUTRAN publicado en datosabiertos.gob.pe.</p>
+    </div>
+    <div class="flow-step">
+      <span>02</span>
+      <h3>Limpieza</h3>
+      <p>Python normaliza fechas, separador CSV, departamento, modalidad y valores numéricos.</p>
+    </div>
+    <div class="flow-step">
+      <span>03</span>
+      <h3>API REST</h3>
+      <p>El backend expone resumen, filtros, registros, series y heatmap temporal.</p>
+    </div>
+    <div class="flow-step">
+      <span>04</span>
+      <h3>Frontend</h3>
+      <p>JavaScript consume la API y actualiza KPIs, mapa, gráficos y tabla sin recargar.</p>
+    </div>
+    <div class="flow-step">
+      <span>05</span>
+      <h3>Análisis</h3>
+      <p>La plataforma ayuda a detectar zonas y patrones de mayor incidencia vial.</p>
+    </div>
+  </div>
+</section>
+
+<section class="tech-section" id="tecnologia">
+  <div class="section-label">Tecnología</div>
+  <h2 class="section-title">Tecnologías que potencian la plataforma</h2>
+  <div class="section-sub">Arquitectura tecnológica de la plataforma, diseñada para operar en entornos web y desplegarse de forma segura y escalable en servicios de nube.</div>
+  <div class="tech-grid">
+    <div class="tech-card">
+      <span>Backend</span>
+      <h3>Python 3</h3>
+      <p>Servidor HTTP local, API REST, lectura CSV, limpieza de datos y cálculo de indicadores.</p>
+    </div>
+    <div class="tech-card">
+      <span>Frontend</span>
+      <h3>HTML5 · CSS3 · JavaScript</h3>
+      <p>Interfaz web interactiva con filtros, estados visuales y consumo de API mediante `fetch`.</p>
+    </div>
+    <div class="tech-card">
+      <span>Visualización</span>
+      <h3>Leaflet · Chart.js</h3>
+      <p>Mapa departamental del Perú, gráficos mensuales, ranking y distribución por modalidad.</p>
+    </div>
+    <div class="tech-card">
+      <span>Datos</span>
+      <h3>datosabiertos.gob.pe</h3>
+      <p>CSV oficial de SUTRAN/MTC con fecha, hora, departamento, vía, kilómetro y consecuencias.</p>
+    </div>
+    <div class="tech-card">
+      <span>Calidad</span>
+      <h3>Validación y logging</h3>
+      <p>Separación por capas, parámetros controlados, manejo de errores y trazabilidad básica.</p>
+    </div>
+    <div class="tech-card">
+      <span>Nube</span>
+      <h3>Despliegue futuro</h3>
+      <p>La API y el frontend pueden empaquetarse para Azure, AWS, Google Cloud o Render.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <h4>🛣️ SUTRAN VIAL</h4>
+    <p>Plataforma académica de monitoreo y visualización de accidentes viales en el Perú. Datos abiertos · Periodo 2020–2021.</p>
+  </div>
+
+  <div>
+    <h5>Secciones</h5>
+    <div class="footer-links">
+      <a href="#dashboard">Indicadores</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#flujo">Flujo de Datos</a>
+      <a href="#tecnologia">Tecnología</a>
+      <a href="prototipo_vialseg.html">Explorar Plataforma</a>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js?v=20260629-departamentos-canonicos"></script>
+</body>
+</html>

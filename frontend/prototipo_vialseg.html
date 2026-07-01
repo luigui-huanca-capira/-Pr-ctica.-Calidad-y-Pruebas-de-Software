@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>VIALSEG Perú – Prototipo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a1628; color: #fff; height: 100vh; overflow: hidden; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: #0d1f3c;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    height: 56px;
+    padding: 0 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .flag { width: 26px; height: 17px; border-radius: 3px; overflow: hidden; display: flex; }
+  .flag-r { flex:1; background:#D91023; }
+  .flag-w { flex:2; background:#fff; }
+  .logo-name { font-size: 15px; font-weight: 600; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top:1px; }
+
+  nav { display: flex; gap: 2px; }
+  nav a {
+    font-size: 12px; color: rgba(255,255,255,0.5);
+    padding: 6px 11px; border-radius: 6px; text-decoration: none;
+    display: flex; align-items: center; gap: 5px; transition: all 0.15s;
+  }
+  nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  nav a.active { background: rgba(26,110,245,0.18); color: #5a9ef8; }
+
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,193,7,0.12); color: #ffc107; border: 1px solid rgba(255,193,7,0.2); }
+  .btn-export { font-size: 12px; padding: 6px 13px; border-radius: 6px; background: #1a6ef5; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; height: calc(100vh - 56px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 230px; flex-shrink: 0;
+    background: #0d1f3c;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    padding: 14px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+    overflow-y: auto;
+  }
+  .s-label { font-size: 10px; font-weight: 600; letter-spacing:.08em; color:rgba(255,255,255,0.3); text-transform:uppercase; padding: 6px 8px 3px; margin-top:6px; }
+  .s-label:first-child { margin-top:0; }
+  select, input {
+    width:100%; font-size:12px; padding:7px 9px;
+    border-radius:6px; background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.1); color:#fff;
+    appearance:none; -webkit-appearance:none; cursor:pointer;
+  }
+  select option { background:#0d1f3c; }
+  .divider { height:1px; background:rgba(255,255,255,0.07); margin:8px 0; }
+  .btn-filter { width:100%; padding:9px; border-radius:7px; background:#1a6ef5; color:#fff; border:none; font-size:12px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .btn-filter:hover { background:#1560d8; }
+  .src-info { margin-top: auto; padding-top:12px; }
+  .src-row { display:flex; justify-content:space-between; font-size:11px; padding:4px 8px; }
+  .src-row span:first-child { color:rgba(255,255,255,0.4); }
+  .src-row span:last-child { color:rgba(255,255,255,0.7); font-weight:500; }
+
+  /* ── MAIN ── */
+  .main { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
+
+  /* ── Tabs (views) ── */
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* ── KPI ROW ── */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .kpi {
+    background:#0d1f3c; border-radius:10px;
+    border:1px solid rgba(255,255,255,0.08);
+    padding:15px 16px;
+  }
+  .kpi-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .kpi-icon { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:17px; }
+  .i-red  { background:rgba(211,47,47,0.15); color:#ef5350; }
+  .i-amber{ background:rgba(255,152,0,0.15); color:#ffa726; }
+  .i-blue { background:rgba(26,110,245,0.15); color:#5a9ef8; }
+  .i-green{ background:rgba(56,142,60,0.15); color:#66bb6a; }
+  .kpi-delta { font-size:10px; padding:2px 7px; border-radius:10px; font-weight:600; }
+  .d-neg { background:rgba(211,47,47,0.15); color:#ef5350; }
+  .d-pos { background:rgba(56,142,60,0.15); color:#66bb6a; }
+  .kpi-val { font-size:27px; font-weight:600; color:#fff; line-height:1.1; }
+  .kpi-lbl { font-size:11px; color:rgba(255,255,255,0.45); margin-top:3px; }
+  .kpi-sub { font-size:10px; color:rgba(255,255,255,0.22); margin-top:2px; }
+
+  /* ── CHARTS ROW ── */
+  .charts-row { display:grid; grid-template-columns:1.4fr 1fr; gap:14px; }
+  .card {
+    background:#0d1f3c; border-radius:10px;
+    border:1px solid rgba(255,255,255,0.08);
+    padding:16px;
+  }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+  .card-title { font-size:13px; font-weight:500; }
+  .card-sub { font-size:11px; color:rgba(255,255,255,0.35); margin-top:2px; }
+  .card-tag { font-size:10px; padding:3px 8px; border-radius:5px; background:rgba(26,110,245,0.12); color:#5a9ef8; border:1px solid rgba(26,110,245,0.2); }
+
+  /* ── HEATMAP ── */
+  .heatmap-grid {
+    display:grid;
+    grid-template-columns: 90px repeat(24, 1fr);
+    gap: 6px;
+    align-items:center;
+  }
+  .heatmap-cell-label { font-size:10px; color:rgba(255,255,255,0.35); padding-left:4px; }
+  .heatmap-cell {
+    height: 18px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+  }
+  .heatmap-legend {
+    display:flex; gap:12px; align-items:center; font-size:10px; color:rgba(255,255,255,0.4);
+    margin-bottom:10px;
+  }
+  .legend-item { display:flex; gap:6px; align-items:center; }
+  .legend-swatch { width:18px; height:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); }
+
+  /* ── BOTTOM ROW ── */
+  .bottom-row { display:grid; grid-template-columns:1fr 2fr; gap:14px; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  thead th {
+    font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:rgba(255,255,255,0.3); padding:7px 14px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.06);
+    white-space:nowrap;
+  }
+  tbody tr { border-bottom:1px solid rgba(255,255,255,0.04); }
+  tbody tr:hover { background:rgba(255,255,255,0.03); }
+  tbody td { font-size:12px; color:rgba(255,255,255,0.7); padding:8px 14px; white-space:nowrap; }
+  .td-b { font-weight:500; color:#fff; }
+  .sb { font-size:10px; padding:2px 7px; border-radius:4px; font-weight:600; }
+  .sb-f { background:rgba(211,47,47,0.28); color:#ff6b6b; }
+  .sb-g { background:rgba(255,152,0,0.15); color:#ffa726; }
+  .sb-l { background:rgba(56,142,60,0.15); color:#66bb6a; }
+  .search { font-size:12px; padding:6px 11px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; width:180px; }
+  .search::placeholder { color:rgba(255,255,255,0.3); }
+  .report-preview {
+    display:grid;
+    grid-template-columns:repeat(4, minmax(140px,1fr));
+    gap:10px;
+  }
+  .report-metric {
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:8px;
+    padding:12px;
+  }
+  .report-metric span {
+    display:block;
+    font-size:10px;
+    color:rgba(255,255,255,0.38);
+    text-transform:uppercase;
+    letter-spacing:.07em;
+  }
+  .report-metric strong {
+    display:block;
+    margin-top:5px;
+    font-size:19px;
+    color:#fff;
+  }
+  .report-note {
+    margin-top:12px;
+    color:rgba(255,255,255,0.55);
+    font-size:12px;
+    line-height:1.6;
+  }
+  .report-actions {
+    display:flex;
+    gap:10px;
+    margin-top:14px;
+    max-width:260px;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="flag"><div class="flag-r"></div><div class="flag-w"></div><div class="flag-r"></div></div>
+    <div>
+      <div class="logo-name">VIALSEG Perú</div>
+      <div class="logo-sub">Sistema de Monitoreo · SUTRAN</div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="#" id="tab-resumen" class="active"><i class="ti ti-layout-dashboard"></i> Resumen</a>
+    <a href="#" id="tab-mapa"><i class="ti ti-map-2"></i> Mapa</a>
+    <a href="#" id="tab-datos"><i class="ti ti-table"></i> Datos</a>
+    <a href="#" id="tab-analisis"><i class="ti ti-chart-bar"></i> Análisis</a>
+    <a href="#" id="tab-reportes"><i class="ti ti-file-export"></i> Reportes</a>
+  </nav>
+
+  <div class="topbar-right">
+    <span class="badge"><i class="ti ti-calendar"></i> 2020 – 2021</span>
+    <button class="btn-export" type="button" id="btn-export"><i class="ti ti-download"></i> Exportar</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="s-label">Año</div>
+    <select id="f-anio">
+      <option value="">Todos</option>
+      <option value="2020">2020</option>
+      <option value="2021">2021</option>
+    </select>
+
+    <div class="s-label">Departamento</div>
+    <select id="f-departamento">
+      <option value="">Todos</option>
+    </select>
+
+    <div class="s-label">Modalidad</div>
+    <select id="f-modalidad">
+      <option value="">Todas</option>
+    </select>
+
+    <div class="divider"></div>
+    <button class="btn-filter" type="button" id="btn-aplicar"><i class="ti ti-filter"></i> Aplicar filtros</button>
+
+    <div class="src-info">
+      <div class="s-label">Fuente de datos</div>
+      <div class="src-row"><span>Fuente</span><span>SUTRAN</span></div>
+      <div class="src-row"><span>Registros</span><span id="src-registros">—</span></div>
+      <div class="src-row"><span>Actualizado</span><span id="src-actualizado">28/01/2022</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Resumen -->
+    <div id="view-resumen" class="view active">
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-top">
+            <div class="kpi-icon i-red"><i class="ti ti-alert-triangle"></i></div>
+            <span class="kpi-delta d-neg" id="delta-fallecidos">—</span>
+          </div>
+          <div class="kpi-val" id="kpi-fallecidos">—</div>
+          <div class="kpi-lbl">Fallecidos</div>
+          <div class="kpi-sub">SUTRAN</div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-top">
+            <div class="kpi-icon i-amber"><i class="ti ti-heart-broken"></i></div>
+            <span class="kpi-delta d-neg" id="delta-heridos">—</span>
+          </div>
+          <div class="kpi-val" id="kpi-heridos">—</div>
+          <div class="kpi-lbl">Heridos</div>
+          <div class="kpi-sub">SUTRAN</div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-top">
+            <div class="kpi-icon i-blue"><i class="ti ti-ambulance"></i></div>
+            <span class="kpi-delta d-pos" id="delta-accidentes">—</span>
+          </div>
+          <div class="kpi-val" id="kpi-accidentes">—</div>
+          <div class="kpi-lbl">Total Accidentes</div>
+          <div class="kpi-sub">Periodo 2020–2021</div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-top">
+            <div class="kpi-icon i-green"><i class="ti ti-map-pin"></i></div>
+            <span class="kpi-delta d-neg" id="delta-deps">—</span>
+          </div>
+          <div class="kpi-val" id="kpi-deps">—</div>
+          <div class="kpi-lbl">Departamentos afectados</div>
+          <div class="kpi-sub">Agregado</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Accidentes por mes</div>
+              <div class="card-sub">Tendencia mensual</div>
+            </div>
+            <span class="card-tag">Serie temporal</span>
+          </div>
+          <div style="position:relative;height:160px;">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Modalidad de accidente</div>
+              <div class="card-sub">Distribución</div>
+            </div>
+          </div>
+          <div style="position:relative;height:160px;">
+            <canvas id="donutChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Mapa de calor temporal</div>
+              <div class="card-sub">Día de semana × hora</div>
+            </div>
+            <span class="card-tag">Mapa de calor</span>
+          </div>
+
+          <div class="heatmap-legend">
+            <div class="legend-item"><span class="legend-swatch" style="background:rgba(26,188,156,0.42);"></span> Baja</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:rgba(230,126,34,0.45);"></span> Media</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:rgba(231,76,60,0.48);"></span> Alta</div>
+          </div>
+
+          <div id="heatmapGrid" class="heatmap-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top departamentos</div>
+              <div class="card-sub">Por número de accidentes</div>
+            </div>
+          </div>
+          <div style="position:relative;height:260px;">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mapa -->
+    <div id="view-mapa" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+              <div class="card-title">Mapa de incidencia por departamento</div>
+              <div class="card-sub">Si eliges un departamento, solo se resalta esa zona</div>
+          </div>
+          <span class="card-tag">Mapa</span>
+        </div>
+        <div id="mapHolder" style="height:420px;border-radius:10px;overflow:hidden;"></div>
+      </div>
+    </div>
+
+    <!-- Datos -->
+    <div id="view-datos" class="view">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div>
+            <div class="card-title">Registros recientes</div>
+            <div class="card-sub" style="margin-top:2px;">Últimos accidentes filtrados</div>
+          </div>
+          <input class="search" id="tableSearch" type="text" placeholder="Buscar..." />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Departamento</th>
+                <th>Carretera</th>
+                <th>Km</th>
+                <th>Modalidad</th>
+                <th>Fallecidos</th>
+                <th>Heridos</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-registros"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Análisis -->
+    <div id="view-analisis" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Mapa de calor temporal</div>
+            <div class="card-sub">Se actualiza con filtros</div>
+          </div>
+        </div>
+        <div id="heatmapGrid2" class="heatmap-grid"></div>
+      </div>
+    </div>
+
+    <!-- Reportes -->
+    <div id="view-reportes" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Reporte Excel filtrado</div>
+            <div class="card-sub">Archivo para usuarios con los filtros aplicados</div>
+          </div>
+          <span class="card-tag">Excel</span>
+        </div>
+        <div id="report-preview" class="report-preview"></div>
+        <p class="report-note" id="report-note">
+          El archivo Excel incluye resumen, filtros aplicados, top departamentos, modalidades y registros filtrados.
+        </p>
+        <div class="report-actions">
+          <button class="btn-filter" type="button" id="btn-download-report"><i class="ti ti-file-spreadsheet"></i> Descargar Excel filtrado</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  const API_BASE = "http://127.0.0.1:8000/api";
+
+  const el = (id) => document.getElementById(id);
+
+  const views = ["resumen","mapa","datos","analisis","reportes"].reduce((acc,k)=>{
+    acc[k]=el("view-"+k);
+    return acc;
+  },{});
+
+  const tabs = {
+    resumen: el("tab-resumen"),
+    mapa: el("tab-mapa"),
+    datos: el("tab-datos"),
+    analisis: el("tab-analisis"),
+    reportes: el("tab-reportes"),
+  };
+
+  async function setActiveView(k){
+    Object.keys(views).forEach(x=>views[x].classList.toggle("active", x===k));
+    Object.keys(tabs).forEach(x=>tabs[x].classList.toggle("active", x===k));
+    if(k === "mapa" && state.summary){
+      await renderMap(state.summary);
+    }
+  }
+
+  Object.entries(tabs).forEach(([k,node])=>{
+    node.addEventListener("click", async (e)=>{ e.preventDefault(); await setActiveView(k); });
+  });
+
+  const f = {
+    anio: el("f-anio"),
+    departamento: el("f-departamento"),
+    modalidad: el("f-modalidad")
+  };
+
+  const state = {
+    summary: null,
+    registros: [],
+    tableSearch: "",
+    q1: 0, q2: 0,
+    map: null,
+    mapBoundaryLayer: null,
+    mapLayer: null,
+    geojson: null,
+    filtros: {},
+    totalFiltrado: 0,
+  };
+
+  function normalizeName(name=""){
+    return String(name).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toUpperCase();
+  }
+
+  const DEPARTAMENTO_EQUIV = {
+    "CUZCO": "CUSCO",
+    "LIMA METROPOLITANA": "LIMA",
+    "LIMA PROVINCIAS": "LIMA",
+    "MADRE DIOS": "MADRE DE DIOS"
+  };
+
+  function normalizeDepartamento(name=""){
+    const dep = normalizeName(name);
+    return DEPARTAMENTO_EQUIV[dep] || dep;
+  }
+
+  function mapCategory(value, q1, q2){
+    const v = Number(value||0);
+    if(!Number.isFinite(v) || v<=0) return "nodata";
+    if(v>=q2) return "alta";
+    if(v>=q1) return "media";
+    return "baja";
+  }
+
+  function catToColor(cat){
+    if(cat==="alta") return "rgba(231,76,60,0.48)";
+    if(cat==="media") return "rgba(230,126,34,0.45)";
+    if(cat==="baja") return "rgba(26,188,156,0.42)";
+    return "rgba(255,255,255,0.03)";
+  }
+
+  async function apiGet(path, params={}){
+    const url = new URL(API_BASE + path);
+    Object.entries(params).forEach(([k,v])=>{
+      if(v!==null && v!==undefined && v!=="") url.searchParams.set(k,v);
+    });
+    const res = await fetch(url.toString());
+    if(!res.ok) throw new Error("API error "+res.status);
+    return res.json();
+  }
+
+  async function loadFilterOptions(){
+    // Backend options: anios/departamentos/modalidades
+    try{
+      const opts = await apiGet("/filters/options");
+      (opts.departamentos||[]).forEach(d=>{
+        const o=document.createElement("option"); o.value=d; o.textContent=d; f.departamento.appendChild(o);
+      });
+      (opts.modalidades||[]).forEach(m=>{
+        const o=document.createElement("option"); o.value=m; o.textContent=m; f.modalidad.appendChild(o);
+      });
+    }catch(e){
+      console.warn("No se pudieron cargar opciones:", e);
+    }
+  }
+
+  function renderKpis(summary){
+    const k = summary.kpis || {};
+    const deps = Array.isArray(summary.por_departamento) ? summary.por_departamento.length : 0;
+
+    el("kpi-fallecidos").textContent = Number(k.total_fallecidos||0).toLocaleString("es-PE");
+    el("kpi-heridos").textContent = Number(k.total_heridos||0).toLocaleString("es-PE");
+    el("kpi-accidentes").textContent = Number(k.total_accidentes||0).toLocaleString("es-PE");
+    el("kpi-deps").textContent = deps.toLocaleString("es-PE");
+
+    el("delta-accidentes").textContent = "Real";
+    el("delta-fallecidos").textContent = "Real";
+    el("delta-heridos").textContent = "Real";
+    el("delta-deps").textContent = "Real";
+  }
+
+  let charts = {};
+  function renderCharts(summary){
+    const series = summary.series_mensual || [];
+    const meses = series.map(x=>x.periodo);
+    const valores = series.map(x=>Number(x.accidentes||0));
+
+    if(charts.line) charts.line.destroy();
+    charts.line = new Chart(el("lineChart"),{
+      type:"line",
+      data:{ labels: meses, datasets:[{ label:"Accidentes", data: valores, borderColor:"#5a9ef8", borderWidth:2, pointRadius:2, fill:true, backgroundColor:"rgba(90,158,248,0.10)", tension:0.35 }]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ grid:{color:"rgba(255,255,255,0.05)"}, ticks:{color:"rgba(255,255,255,0.35)", font:{size:10}} }, y:{ grid:{color:"rgba(255,255,255,0.05)"}, ticks:{color:"rgba(255,255,255,0.35)", font:{size:10}} } } }
+    });
+
+    const porMod = summary.por_modalidad || [];
+    const labels = porMod.map(r=>r.modalidad||"SIN_DATO").slice(0,6);
+    const data = porMod.map(r=>Number(r.accidentes||0)).slice(0,6);
+    const palette = ["#5a9ef8","#66bb6a","#ffa726","#ef5350","#eda100","#e34948"];
+    const colors = labels.map((_,i)=>palette[i%palette.length]);
+
+    if(charts.donut) charts.donut.destroy();
+    charts.donut = new Chart(el("donutChart"),{
+      type:"doughnut",
+      data:{ labels, datasets:[{ data, backgroundColor: colors, borderWidth:2, borderColor:"#0d1f3c" }]},
+      options:{ responsive:true, maintainAspectRatio:false, cutout:"68%", plugins:{ legend:{display:false} } }
+    });
+
+    const porDep = summary.por_departamento || [];
+    const top = porDep.slice().sort((a,b)=>Number(b.accidentes||0)-Number(a.accidentes||0)).slice(0,7);
+    const depLabels = top.map(x=>x.departamento||"SIN_DATO");
+    const depVals = top.map(x=>Number(x.accidentes||0));
+
+    if(charts.bar) charts.bar.destroy();
+    charts.bar = new Chart(el("barChart"),{
+      type:"bar",
+      data:{ labels: depLabels, datasets:[{ data: depVals, backgroundColor:"rgba(42,120,214,0.65)", borderColor:"#2a78d6", borderWidth:1, borderRadius:3 }]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, indexAxis:"y",
+        scales:{ x:{ grid:{color:"rgba(255,255,255,0.05)"}, ticks:{color:"rgba(255,255,255,0.35)", font:{size:10}} }, y:{ grid:{display:false}, ticks:{color:"rgba(255,255,255,0.5)", font:{size:10}} } }
+      }
+    });
+  }
+
+  function computeQuantiles(rows){
+    const values = rows.map(r=>Number(r.accidentes||0)).filter(v=>Number.isFinite(v)).sort((a,b)=>a-b);
+    const q1 = values.length ? values[Math.floor(values.length*0.33)] : 0;
+    const q2 = values.length ? values[Math.floor(values.length*0.66)] : 0;
+    return {q1,q2};
+  }
+
+  function renderHeatmap(containerId, heatmapTemporal){
+    const grid = el(containerId);
+    grid.innerHTML = "";
+
+    const rows = heatmapTemporal || [];
+    if(!rows.length){
+      grid.innerHTML = "<div style='grid-column:1/-1;color:rgba(255,255,255,0.5);font-size:11px;padding:10px;'>Sin datos para el mapa de calor.</div>";
+      return;
+    }
+
+    const {q1,q2} = computeQuantiles(rows);
+    state.q1=q1; state.q2=q2;
+
+    // horas 0..23
+    const map = {};
+    let maxV=0;
+    rows.forEach(r=>{
+      const dia=r.dia_semana;
+      const hora = Number(r.hora);
+      const v = Number(r.accidentes||0);
+      map[`${dia}__${hora}`]=v;
+      if(v>maxV) maxV=v;
+    });
+
+    // orden días según dataset SUTRAN normalizado por el backend
+    const order = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+    const dias = Array.from(new Set(rows.map(r=>r.dia_semana))).slice(0,7);
+    const diasOrden = dias.length ? order.filter(d=>dias.includes(d)).concat(dias.filter(d=>!order.includes(d))) : order;
+
+    diasOrden.forEach(dia=>{
+      const lbl=document.createElement("div");
+      lbl.className="heatmap-cell-label";
+      lbl.textContent=dia;
+      grid.appendChild(lbl);
+
+      for(let h=0; h<24; h++){
+        const v = Number(map[`${dia}__${h}`] || 0);
+        const cat = mapCategory(v,q1,q2);
+        const cell=document.createElement("div");
+        cell.className="heatmap-cell";
+        cell.title = `${dia} · ${String(h).padStart(2,"0")}:00\nAccidentes: ${v}`;
+        cell.style.background = catToColor(cat);
+        grid.appendChild(cell);
+      }
+    });
+  }
+
+  function esc(s){
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function renderTable(registros){
+    const tbody = el("tbody-registros");
+    tbody.innerHTML = "";
+
+    const q = (el("tableSearch")?.value || "").toLowerCase();
+    let rows = registros || [];
+    if(q){
+      rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(q));
+    }
+
+    rows.slice(0,120).forEach(r=>{
+      const tr=document.createElement("tr");
+      const falle = Number(r.fallecidos||0);
+      const heri = Number(r.heridos||0);
+      tr.innerHTML = `
+        <td>${esc(r.fecha||"")}</td>
+        <td class="td-b">${esc(r.departamento||"")}</td>
+        <td>${esc(r.carretera||"")}</td>
+        <td>${esc(r.kilometro||"")}</td>
+        <td>${esc(r.modalidad||"")}</td>
+        <td style="color:#ef5350;font-weight:600;">${esc(falle)}</td>
+        <td style="color:#ffa726;">${esc(heri)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function renderMap(summary){
+    if(!state.map){
+      state.map = L.map("mapHolder", { zoomControl:true }).setView([-9.19, -75.0152], 5);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ attribution:"&copy; OpenStreetMap"}).addTo(state.map);
+    }
+
+    const porDep = summary.por_departamento || [];
+    const byDep = {};
+    const selectedDep = normalizeDepartamento(f.departamento.value || "");
+    const values = porDep.map(r=>Number(r.accidentes||0)).filter(v=>Number.isFinite(v)).sort((a,b)=>a-b);
+    const q1 = values.length ? values[Math.floor(values.length*0.33)] : 0;
+    const q2 = values.length ? values[Math.floor(values.length*0.66)] : 0;
+
+    porDep.forEach(r=>{
+      const dep = normalizeDepartamento(r.departamento||"");
+      const val = Number(r.accidentes||0);
+      byDep[dep] = { accidentes: val, categoria: mapCategory(val,q1,q2) };
+    });
+
+    if(!state.geojson){
+      const geoRes = await fetch("https://raw.githubusercontent.com/juaneladio/peru-geojson/master/peru_departamental_simple.geojson");
+      state.geojson = await geoRes.json();
+    }
+
+    // El mapa nacional queda como referencia, sin colorear ningún departamento.
+    if(!state.mapBoundaryLayer){
+      state.mapBoundaryLayer = L.geoJSON(state.geojson, {
+        interactive: false,
+        style: {
+          fillOpacity: 0,
+          weight: 1,
+          opacity: 0.75,
+          color: "#38506f"
+        }
+      }).addTo(state.map);
+    }
+
+    if(state.mapLayer) state.map.removeLayer(state.mapLayer);
+
+    // Al filtrar, la capa coloreada recibe físicamente una sola geometría.
+    // Esto evita que los demás departamentos aparezcan rellenos como "sin dato".
+    const coloredGeojson = selectedDep
+      ? {
+          ...state.geojson,
+          features: (state.geojson.features || []).filter((feature) =>
+            normalizeDepartamento(feature?.properties?.NOMBDEP || "") === selectedDep
+          )
+        }
+      : state.geojson;
+
+    let selectedLayer = null;
+    state.mapLayer = L.geoJSON(coloredGeojson, {
+      style: (feature)=>{
+        const depName = normalizeDepartamento(feature?.properties?.NOMBDEP || "");
+        const info = byDep[depName] || { categoria:"nodata" };
+        const isSelected = selectedDep && depName === selectedDep;
+
+        const fill = info.categoria==="alta" ? "#e74c3c" : info.categoria==="media" ? "#f39c12" : info.categoria==="baja" ? "#1abc9c" : "#5d6d7e";
+        return {
+          fillColor: fill,
+          weight: isSelected ? 2.4 : 1.2,
+          opacity:1,
+          color: isSelected ? "#ffffff" : "#173257",
+          fillOpacity: isSelected ? 0.86 : 0.7
+        };
+      },
+      onEachFeature: (feature, layer)=>{
+        const depRaw = feature?.properties?.NOMBDEP || "Departamento";
+        const depName = normalizeDepartamento(depRaw);
+        const info = byDep[depName] || { accidentes:0, categoria:"nodata" };
+        const isSelected = selectedDep && depName === selectedDep;
+        if(isSelected) selectedLayer = layer;
+        const catLabel = info.categoria==="alta" ? "Alta incidencia" : info.categoria==="media" ? "Media incidencia" : info.categoria==="baja" ? "Baja incidencia" : "Sin dato";
+        layer.bindPopup(`<strong>${depRaw}</strong><br/>Accidentes: ${Number(info.accidentes||0).toLocaleString("es-PE")}<br/>Nivel: ${catLabel}`);
+      }
+    }).addTo(state.map);
+    state.mapLayer.bringToFront();
+
+    setTimeout(()=>{
+      state.map.invalidateSize();
+      if(selectedLayer){
+        state.map.fitBounds(selectedLayer.getBounds(), { padding:[35,35] });
+      }else{
+        state.map.setView([-9.19, -75.0152], 5);
+      }
+    },50);
+  }
+
+  function formatFilter(value){
+    return value === undefined || value === null || value === "" ? "Todos" : String(value);
+  }
+
+  function formatDate(value){
+    const s = String(value ?? "");
+    if(/^\d{8}$/.test(s)){
+      return `${s.slice(6,8)}/${s.slice(4,6)}/${s.slice(0,4)}`;
+    }
+    return s;
+  }
+
+  function renderReportPreview(summary, registros, filtros, totalFiltrado){
+    const k = summary.kpis || {};
+    const metrics = [
+      ["Año", formatFilter(filtros.anio)],
+      ["Departamento", formatFilter(filtros.departamento)],
+      ["Modalidad", formatFilter(filtros.modalidad)],
+      ["Registros filtrados", Number(totalFiltrado || 0).toLocaleString("es-PE")],
+      ["Accidentes", Number(k.total_accidentes || 0).toLocaleString("es-PE")],
+      ["Fallecidos", Number(k.total_fallecidos || 0).toLocaleString("es-PE")],
+      ["Heridos", Number(k.total_heridos || 0).toLocaleString("es-PE")],
+      ["Filas en Excel", Number(registros.length || 0).toLocaleString("es-PE")]
+    ];
+
+    el("report-preview").innerHTML = metrics.map(([label,value]) => `
+      <div class="report-metric">
+        <span>${esc(label)}</span>
+        <strong>${esc(value)}</strong>
+      </div>
+    `).join("");
+
+    el("report-note").textContent = `Fuente: SUTRAN/MTC, datos abiertos del Perú. El Excel se genera con el filtro actual: año ${formatFilter(filtros.anio)}, departamento ${formatFilter(filtros.departamento)}, modalidad ${formatFilter(filtros.modalidad)}.`;
+  }
+
+  function excelEsc(value){
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function excelCell(value){
+    const isNumber = typeof value === "number" && Number.isFinite(value);
+    const type = isNumber ? "Number" : "String";
+    return `<Cell><Data ss:Type="${type}">${excelEsc(value)}</Data></Cell>`;
+  }
+
+  function excelRow(values){
+    return `<Row>${values.map(excelCell).join("")}</Row>`;
+  }
+
+  function worksheetXml(name, rows){
+    return `<Worksheet ss:Name="${excelEsc(name).slice(0,31)}"><Table>${rows.map(excelRow).join("")}</Table></Worksheet>`;
+  }
+
+  function buildExcelXml(){
+    const summary = state.summary || { kpis:{}, por_departamento:[], por_modalidad:[] };
+    const filtros = state.filtros || {};
+    const registros = state.registros || [];
+    const k = summary.kpis || {};
+    const generatedAt = new Date().toLocaleString("es-PE");
+
+    const resumenRows = [
+      ["Reporte SUTRAN - Accidentes de tránsito en carreteras del Perú"],
+      ["Generado", generatedAt],
+      ["Fuente", "datosabiertos.gob.pe - SUTRAN/MTC"],
+      ["Publicador", "Superintendencia de Transporte Terrestre de Personas, Carga y Mercancías - SUTRAN"],
+      ["Fecha de lanzamiento", "22/12/2021"],
+      ["Fecha modificada", "28/01/2022"],
+      ["Frecuencia", "Mensual"],
+      ["Licencia", "Open Data Commons Attribution License"],
+      [],
+      ["Filtros aplicados"],
+      ["Año", formatFilter(filtros.anio)],
+      ["Departamento", formatFilter(filtros.departamento)],
+      ["Modalidad", formatFilter(filtros.modalidad)],
+      [],
+      ["Indicador", "Valor"],
+      ["Total accidentes", Number(k.total_accidentes || 0)],
+      ["Total fallecidos", Number(k.total_fallecidos || 0)],
+      ["Total heridos", Number(k.total_heridos || 0)],
+      ["Registros filtrados", Number(state.totalFiltrado || 0)],
+      ["Registros incluidos en Excel", Number(registros.length || 0)]
+    ];
+
+    const departamentoRows = [
+      ["Departamento", "Accidentes"],
+      ...(summary.por_departamento || []).map(r => [r.departamento || "SIN_DATO", Number(r.accidentes || 0)])
+    ];
+
+    const modalidadRows = [
+      ["Modalidad", "Accidentes"],
+      ...(summary.por_modalidad || []).map(r => [r.modalidad || "SIN_DATO", Number(r.accidentes || 0)])
+    ];
+
+    const registroRows = [
+      ["Fecha", "Hora", "Departamento", "Carretera", "Kilómetro", "Modalidad", "Fallecidos", "Heridos"],
+      ...registros.map(r => [
+        formatDate(r.fecha),
+        r.hora || "",
+        r.departamento || "",
+        r.carretera || "",
+        Number(r.kilometro || 0),
+        r.modalidad || "",
+        Number(r.fallecidos || 0),
+        Number(r.heridos || 0)
+      ])
+    ];
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ ${worksheetXml("Resumen", resumenRows)}
+ ${worksheetXml("Departamentos", departamentoRows)}
+ ${worksheetXml("Modalidades", modalidadRows)}
+ ${worksheetXml("Registros filtrados", registroRows)}
+</Workbook>`;
+  }
+
+  function filenamePart(value){
+    return normalizeName(value || "todos").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "todos";
+  }
+
+  function downloadExcelReport(){
+    if(!state.summary){
+      alert("Primero carga los datos antes de exportar.");
+      return;
+    }
+    const xml = buildExcelXml();
+    const blob = new Blob([xml], { type:"application/vnd.ms-excel;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reporte-sutran-${filenamePart(state.filtros.anio)}-${filenamePart(state.filtros.departamento)}-${filenamePart(state.filtros.modalidad)}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function applyFilters(){
+    const filtros = {
+      anio: f.anio.value ? Number(f.anio.value) : undefined,
+      departamento: f.departamento.value || undefined,
+      modalidad: f.modalidad.value || undefined,
+      limite: 10000
+    };
+
+    const summary = await apiGet("/dashboard/summary", {
+      anio: filtros.anio,
+      departamento: filtros.departamento,
+      modalidad: filtros.modalidad
+    });
+
+    const accidentes = await apiGet("/accidentes", {
+      anio: filtros.anio,
+      departamento: filtros.departamento,
+      modalidad: filtros.modalidad,
+      limite: filtros.limite
+    });
+
+    const registros = accidentes?.registros || [];
+    state.summary = summary;
+    state.registros = registros;
+    state.filtros = filtros;
+    state.totalFiltrado = Number(accidentes.total_filtrado || registros.length || 0);
+
+    // KPI / charts / heatmap / table
+    el("src-registros").textContent = state.totalFiltrado.toLocaleString("es-PE");
+
+    renderKpis(summary);
+    renderCharts(summary);
+    renderHeatmap("heatmapGrid", summary.heatmap_temporal);
+    renderHeatmap("heatmapGrid2", summary.heatmap_temporal);
+    renderTable(registros);
+    renderReportPreview(summary, registros, filtros, state.totalFiltrado);
+
+    // Mapa solo si se encuentra en esa vista
+    if(views.mapa.classList.contains("active")){
+      await renderMap(summary);
+    }
+  }
+
+  el("btn-aplicar").addEventListener("click", async ()=>{
+    try{
+      await applyFilters();
+    }catch(e){
+      console.error(e);
+      alert("Error cargando datos. Verifica backend en http://127.0.0.1:8000/api");
+    }
+  });
+
+  [f.anio, f.departamento, f.modalidad].forEach((select)=>{
+    select.addEventListener("change", async ()=>{
+      try{
+        await applyFilters();
+      }catch(e){
+        console.error(e);
+      }
+    });
+  });
+
+  el("tableSearch").addEventListener("input", ()=>{
+    renderTable(state.registros);
+  });
+
+  el("btn-download-report").addEventListener("click", downloadExcelReport);
+  el("btn-export").addEventListener("click", downloadExcelReport);
+
+  // Inicialización
+  (async function init(){
+    await loadFilterOptions();
+    await applyFilters();
+  })();
+</script>
+</body>
+</html>
